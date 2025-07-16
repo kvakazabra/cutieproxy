@@ -370,7 +370,7 @@ namespace proxy
             if (!remote_port)
                 return false;
 
-            print_log(log_level::debug, std::string("connect_to_remote_host:  ") + std::string{remote_ip} + " : " +
+            this->print_log(log_level::debug, std::string("connect_to_remote_host:  ") + std::string{remote_ip} + " : " +
                       std::to_string(remote_port));
 
             auto remote_socket = WSASocket(address_type_t::af_type, SOCK_STREAM, IPPROTO_TCP, nullptr, 0,
@@ -535,7 +535,7 @@ namespace proxy
                         std::get<1>(sock_array_events_[event_index]),
                         std::get<2>(sock_array_events_[event_index]),
                         std::move(std::get<3>(sock_array_events_[event_index])),
-                        log_level_, log_stream_));
+                        this->log_level_, this->log_stream_));
 
                     proxy_sockets_.back()->associate_to_completion_port(completion_key_, completion_port_);
                     proxy_sockets_.back()->start();
@@ -603,7 +603,7 @@ namespace proxy
         {
             // Thread local seed for rand_r
             static thread_local auto seed = static_cast<uint32_t>(time(nullptr));
-
+            srand(seed);
             // Initial result set to timeout
             DWORD result = WAIT_TIMEOUT;
 
@@ -618,7 +618,7 @@ namespace proxy
 
                     // Divide the wait time in half, if timeout is infinite, use a default wait time of 2000ms
                     const DWORD wait = (ms == INFINITE ? 2000 : ms) / 2;
-                    const int random = rand_s(&seed);
+                    const int random = rand();
 
                     // Recurse on both halves in a random order until a handle is signaled or all handles are checked
                     for (short branch = 0; branch < 2 && result == WAIT_TIMEOUT; branch++)

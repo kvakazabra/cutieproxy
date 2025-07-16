@@ -132,7 +132,7 @@ namespace ndisapi
                     endpoints_[udp_header->th_sport] =
                         std::chrono::steady_clock::now();
 
-                    print_log(log_level::info, std::string("NEW client UDP endpoint: ") +
+                    this->print_log(log_level::info, std::string("NEW client UDP endpoint: ") +
                               " : " + std::to_string(ntohs(udp_header->th_sport)));
 
                     return true;
@@ -215,7 +215,7 @@ namespace ndisapi
                     return false;
                 }
 
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("C2S: ") + std::string{T{ip_header->ip_src}} + " : " +
                           std::to_string(ntohs(udp_header->th_sport)) + " -> " +
                           std::string{T{ip_header->ip_dst}} + " : " + std::to_string(ntohs(udp_header->th_dport)));
@@ -252,7 +252,7 @@ namespace ndisapi
 
                 it->second = std::chrono::steady_clock::now();
 
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("C2S: ") + std::string{T{ip_header->ip_src}} + " : " +
                           std::to_string(ntohs(udp_header->th_sport)) + " -> " + std::string{T{ip_header->ip_dst}} +
                           " : "
@@ -368,7 +368,7 @@ namespace ndisapi
                 if (it == endpoints_.cend())
                     return false;
 
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("S2C: ") + std::string{T{ip_header->ip_src}} + " : " +
                           std::to_string(ntohs(udp_header->th_sport)) + " -> " + std::string{T{ip_header->ip_dst}} +
                           " : "
@@ -400,7 +400,7 @@ namespace ndisapi
 
                 it->second = std::chrono::steady_clock::now();
 
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("S2C: ") + std::string{T{ip_header->ip_src}} + " : " +
                           std::to_string(ntohs(udp_header->th_sport)) + " -> " + std::string{T{ip_header->ip_dst}} +
                           " : "

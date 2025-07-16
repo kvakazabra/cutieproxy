@@ -445,7 +445,7 @@ namespace proxy
                                static_cast<int>(socks5_ident_req_size), 0);
             if (result == SOCKET_ERROR)
             {
-                print_log(log_level::info,
+                this->print_log(log_level::info,
                           "[SOCKS5]: associate_to_socks5_proxy: Failed to send socks5_ident_req: "s + std::to_string(
                               WSAGetLastError()));
                 return {};
@@ -454,7 +454,7 @@ namespace proxy
             result = recv(socks_tcp_socket, reinterpret_cast<char*>(&ident_resp), sizeof(ident_resp), 0);
             if (result == SOCKET_ERROR)
             {
-                print_log(log_level::info,
+                this->print_log(log_level::info,
                           "[SOCKS5]: associate_to_socks5_proxy: Failed to receive socks5_ident_resp: "s +
                           std::to_string(WSAGetLastError()));
                 return {};
@@ -463,7 +463,7 @@ namespace proxy
             if ((ident_resp.version != 5) ||
                 (ident_resp.method == 0xFF))
             {
-                print_log(log_level::info,
+                this->print_log(log_level::info,
                           "[SOCKS5]: associate_to_socks5_proxy: SOCKS5 authentication has failed: "s);
                 return {};
             }
@@ -472,7 +472,7 @@ namespace proxy
             {
                 if (!negotiate_ctx->socks5_username.has_value())
                 {
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               "[SOCKS5]: associate_to_socks5_proxy: RFC 1928: X'02' USERNAME/PASSWORD is chosen but USERNAME is not provided: "s);
                     return {};
                 }
@@ -480,14 +480,14 @@ namespace proxy
                 if (negotiate_ctx->socks5_username.value().length() > socks5_username_max_length || negotiate_ctx->
                     socks5_username.value().length() < 1)
                 {
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               "[SOCKS5]: associate_to_socks5_proxy: RFC 1928: X'02' USERNAME/PASSWORD is chosen but USERNAME exceeds maximum possible length: "s);
                     return {};
                 }
 
                 if (!negotiate_ctx->socks5_password.has_value())
                 {
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               "[SOCKS5]: associate_to_socks5_proxy: RFC 1928: X'02' USERNAME/PASSWORD is chosen but PASSWORD is not provided: "s);
                     return {};
                 }
@@ -495,7 +495,7 @@ namespace proxy
                 if (negotiate_ctx->socks5_password.value().length() > socks5_username_max_length || negotiate_ctx->
                     socks5_password.value().length() < 1)
                 {
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               "[SOCKS5]: associate_to_socks5_proxy: RFC 1928: X'02' USERNAME/PASSWORD is chosen but USERNAME exceeds maximum possible length: "s);
                     return {};
                 }
@@ -508,7 +508,7 @@ namespace proxy
                                   negotiate_ctx->socks5_password.value().length()), 0);
                 if (result == SOCKET_ERROR)
                 {
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               "[SOCKS5]: associate_to_socks5_proxy: Failed to send socks5_username_auth: "s +
                               std::to_string(WSAGetLastError()));
                     return {};
@@ -517,7 +517,7 @@ namespace proxy
                 result = recv(socks_tcp_socket, reinterpret_cast<char*>(&ident_resp), sizeof(ident_resp), 0);
                 if (result == SOCKET_ERROR)
                 {
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               "[SOCKS5]: associate_to_socks5_proxy: Failed to receive socks5_ident_resp: "s +
                               std::to_string(WSAGetLastError()));
                     return {};
@@ -525,12 +525,12 @@ namespace proxy
 
                 if (ident_resp.method != 0x0)
                 {
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               "[SOCKS5]: associate_to_socks5_proxy: USERNAME/PASSWORD authentication has failed!"s);
                     return {};
                 }
 
-                print_log(log_level::info,
+                this->print_log(log_level::info,
                           "[SOCKS5]: associate_to_socks5_proxy: USERNAME/PASSWORD authentication SUCCESS"s);
             }
 
@@ -550,7 +550,7 @@ namespace proxy
             result = send(socks_tcp_socket, reinterpret_cast<const char*>(&associate_req), sizeof(associate_req), 0);
             if (result == SOCKET_ERROR)
             {
-                print_log(log_level::info,
+                this->print_log(log_level::info,
                           "[SOCKS5]: associate_to_socks5_proxy: Failed to send SOCKS5 ASSOCIATE request: "s +
                           std::to_string(WSAGetLastError()));
                 return {};
@@ -559,7 +559,7 @@ namespace proxy
             result = recv(socks_tcp_socket, reinterpret_cast<char*>(&associate_resp), sizeof(associate_resp), 0);
             if (result == SOCKET_ERROR)
             {
-                print_log(log_level::info,
+                this->print_log(log_level::info,
                           "[SOCKS5]: associate_to_socks5_proxy: Failed to receive SOCKS5 ASSOCIATE response: "s +
                           std::to_string(WSAGetLastError()));
                 return {};
@@ -568,12 +568,12 @@ namespace proxy
             if ((associate_resp.version != 5) ||
                 (associate_resp.reply != 0))
             {
-                print_log(log_level::info,
+                this->print_log(log_level::info,
                           "[SOCKS5]: associate_to_socks5_proxy: SOCKS5 ASSOCIATE has failed: "s);
                 return {};
             }
 
-            print_log(log_level::info,
+            this->print_log(log_level::info,
                       "[SOCKS5]: associate_to_socks5_proxy: SOCKS5 ASSOCIATE SUCCESS port: "s + std::to_string(
                           ntohs(associate_resp.bind_port)));
 
@@ -610,7 +610,7 @@ namespace proxy
             auto [remote_address, remote_port, negotiate_ctx] =
                 get_remote_peer(local_peer_address, local_peer_port);
 
-            print_log(log_level::debug,
+            this->print_log(log_level::debug,
                       std::string("connect_to_remote_host: Connect to SOCKS5 proxy and send ASSOCIATE command: ") +
                       std::string{remote_address} + " : " +
                       std::to_string(remote_port));
@@ -618,7 +618,7 @@ namespace proxy
             auto socks5_tcp_socket = connect_to_socks5_proxy(remote_address, remote_port);
             if (socks5_tcp_socket == INVALID_SOCKET)
             {
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("connect_to_remote_host: Failed to connect to SOCKS5 proxy: ") + std::string{
                               remote_address
                           } + " : " +
@@ -629,7 +629,7 @@ namespace proxy
             auto udp_port = associate_to_socks5_proxy(socks5_tcp_socket, negotiate_ctx);
             if (!udp_port.has_value())
             {
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("connect_to_remote_host: ASSOCIATE command has failed: ") + std::string{
                               remote_address
                           } + " : " +
@@ -639,7 +639,7 @@ namespace proxy
                 return false;
             }
 
-            print_log(log_level::debug,
+            this->print_log(log_level::debug,
                       std::string("connect_to_remote_host:  UDP connect: ") + std::string{remote_address} + " : " +
                       std::to_string(udp_port.value()));
 
@@ -719,7 +719,7 @@ namespace proxy
                                                            socks5_tcp_socket, packet_pool_, server_socket_,
                                                            recv_from_sa_, remote_socket, remote_address,
                                                            udp_port.value(), std::move(negotiate_ctx),
-                                                           log_level_, log_stream_));
+                                                           this->log_level_, this->log_stream_));
 
             if (result)
             {

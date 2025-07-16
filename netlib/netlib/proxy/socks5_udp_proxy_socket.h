@@ -252,8 +252,8 @@ namespace proxy
 
             if (io_context->is_local == true)
             {
-                if (log_level_ > netlib::log::log_level::debug)
-                    print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
+                if (this->log_level_ > netlib::log::log_level::debug)
+                    this->print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
                               std::string{remote_peer_address_} + " : " +
                               std::to_string(remote_peer_port_) + std::string(" :received data from local socket: ") +
                               std::to_string(io_size));
@@ -264,7 +264,7 @@ namespace proxy
                     // forward the received data to remote host
                     io_context_send_to_remote->wsa_buf = std::move(io_context->wsa_buf);
 
-                    print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
+                    this->print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
                               std::string{remote_peer_address_} + " : " +
                               std::to_string(remote_peer_port_) + std::string(" :sending data to remote socket: ") +
                               std::to_string(io_size));
@@ -289,7 +289,7 @@ namespace proxy
             }
             else
             {
-                print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
+                this->print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
                           std::string{remote_peer_address_} + " : " +
                           std::to_string(remote_peer_port_) + std::string(" :received data from remote socket: ") +
                           std::to_string(io_size));
@@ -301,7 +301,7 @@ namespace proxy
                     io_context_send_to_local->wsa_buf->len = io_size;
                     memmove(io_context_send_to_local->wsa_buf->buf, from_remote_to_local_buffer_.data(), io_size);
 
-                    print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
+                    this->print_log(log_level::debug, std::string("process_receive_buffer_complete: ") +
                               std::string{remote_peer_address_} + " : " +
                               std::to_string(remote_peer_port_) + std::string(" :sending data to local socket: ") +
                               std::to_string(io_size));
@@ -339,7 +339,7 @@ namespace proxy
             if (io_context->is_local == true)
             {
                 // Send to local complete
-                print_log(log_level::debug, std::string("process_send_buffer_complete: ") +
+                this->print_log(log_level::debug, std::string("process_send_buffer_complete: ") +
                           std::string{remote_peer_address_} + " : " +
                           std::to_string(remote_peer_port_) + std::string(
                               " :send data to locally connected socket complete: ") + std::to_string(io_size));
@@ -347,7 +347,7 @@ namespace proxy
             else
             {
                 // Send to remote complete
-                print_log(log_level::debug, std::string("process_send_buffer_complete: ") +
+                this->print_log(log_level::debug, std::string("process_send_buffer_complete: ") +
                           std::string{remote_peer_address_} + " : " +
                           std::to_string(remote_peer_port_) + std::string(
                               " :send data to remotely connected socket complete: ") + std::to_string(io_size));

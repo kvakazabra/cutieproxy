@@ -349,7 +349,7 @@ namespace proxy
                 {
                     if (io_context->is_local)
                     {
-                        print_log(log_level::debug,
+                        this->print_log(log_level::debug,
                                   std::string(
                                       "process_receive_buffer_complete: data received from locally connected socket: ")
                                   + std::to_string(io_size));
@@ -362,7 +362,7 @@ namespace proxy
                             remote_send_buf_.buf = local_recv_buf_.buf;
                             remote_send_buf_.len = io_size;
 
-                            print_log(log_level::debug,
+                            this->print_log(log_level::debug,
                                       std::string(
                                           "process_receive_buffer_complete: sending data to remotely connected socket: ")
                                       + std::to_string(io_size));
@@ -427,7 +427,7 @@ namespace proxy
                     }
                     else
                     {
-                        print_log(log_level::debug,
+                        this->print_log(log_level::debug,
                                   std::string(
                                       "process_receive_buffer_complete: data received from remotely connected socket: ")
                                   + std::to_string(io_size));
@@ -440,7 +440,7 @@ namespace proxy
                             local_send_buf_.buf = remote_recv_buf_.buf;
                             local_send_buf_.len = io_size;
 
-                            print_log(log_level::debug,
+                            this->print_log(log_level::debug,
                                       std::string(
                                           "process_receive_buffer_complete: sending data to locally connected socket: ")
                                       + std::to_string(io_size));
@@ -521,7 +521,7 @@ namespace proxy
 
             if (io_context->is_local)
             {
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("process_send_buffer_complete: send complete to locally connected socket: ")
                           + std::to_string(io_size));
 
@@ -581,7 +581,7 @@ namespace proxy
 
                     if (local_send_buf_.len)
                     {
-                        print_log(log_level::debug,
+                        this->print_log(log_level::debug,
                                   std::string(
                                       "process_send_buffer_complete: sending data to locally connected socket: ")
                                   + std::to_string(io_size));
@@ -602,7 +602,7 @@ namespace proxy
             }
             else
             {
-                print_log(log_level::debug,
+                this->print_log(log_level::debug,
                           std::string("process_send_buffer_complete: send complete to remotely connected socket: ")
                           + std::to_string(io_size));
 
@@ -662,7 +662,7 @@ namespace proxy
 
                     if (remote_send_buf_.len)
                     {
-                        print_log(log_level::debug,
+                        this->print_log(log_level::debug,
                                   std::string(
                                       "process_send_buffer_complete: sending data to remotely connected socket: ")
                                   + std::to_string(io_size));

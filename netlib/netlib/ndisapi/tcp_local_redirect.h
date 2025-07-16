@@ -129,7 +129,7 @@ namespace ndisapi
                         }); !result)
                         return false;
 
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               std::string("NEW TCP: ") + std::string{T{ip_header->ip_src}} + " : " +
                               std::to_string(ntohs(tcp_header->th_sport)) + " -> " + std::string{T{ip_header->ip_dst}} +
                               " : " + std::to_string(ntohs(tcp_header->th_dport)));
@@ -146,7 +146,7 @@ namespace ndisapi
                     if (tcp_header->th_flags & TH_RST || tcp_header->th_flags & TH_FIN)
                     {
                         // pass through but erase the corresponding entry
-                        print_log(log_level::info,
+                        this->print_log(log_level::info,
                                   std::string("DELETE TCP: ") + std::to_string(ntohs(it->first.port)) + " -> " +
                                   std::string{it->first.ip} + " : "
                                   +
@@ -199,7 +199,7 @@ namespace ndisapi
                         }); !result)
                         return false;
 
-                    print_log(log_level::info, std::string("NEW TCP: ") + std::string{T{ip_header->ip6_src}} + " : " +
+                    this->print_log(log_level::info, std::string("NEW TCP: ") + std::string{T{ip_header->ip6_src}} + " : " +
                               std::to_string(ntohs(tcp_header->th_sport)) + " -> " + std::string{T{ip_header->ip6_dst}}
                               +
                               " : " + std::to_string(ntohs(tcp_header->th_dport)));
@@ -216,7 +216,7 @@ namespace ndisapi
                     if (tcp_header->th_flags & TH_RST || tcp_header->th_flags & TH_FIN)
                     {
                         // pass thru but erase the corresponding entry
-                        print_log(log_level::info, std::string("DELETE TCP: ") + std::string{it->first.ip} + " : " +
+                        this->print_log(log_level::info, std::string("DELETE TCP: ") + std::string{it->first.ip} + " : " +
                                   std::to_string(ntohs(it->first.port)) + " -> " + std::string{T{it->second.ip}} +
                                   " : " + std::to_string(ntohs(it->second.port)));
 
@@ -275,7 +275,7 @@ namespace ndisapi
                 if (tcp_header->th_flags & TH_RST || tcp_header->th_flags & TH_FIN)
                 {
                     // pass thru but erase the corresponding entry
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               std::string("DELETE TCP: ") + std::to_string(ntohs(it->first.port)) + " -> " +
                               std::string{it->first.ip} + " : "
                               +
@@ -326,7 +326,7 @@ namespace ndisapi
                 if (tcp_header->th_flags & TH_RST || tcp_header->th_flags & TH_FIN)
                 {
                     // pass thru but erase the corresponding entry
-                    print_log(log_level::info,
+                    this->print_log(log_level::info,
                               std::string("DELETE TCP: ") + std::to_string(ntohs(it->first.port)) + " -> " +
                               std::string{it->first.ip} + " : "
                               +
