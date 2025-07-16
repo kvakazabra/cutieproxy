@@ -1,8 +1,6 @@
 #pragma once
 #include "includes.h"
 
-struct MutexImpl;
-
 namespace proxy {
     class socks_local_router;
 }
@@ -44,5 +42,5 @@ private:
     TLogLevel m_LogLevel{ TLogLevel::none };
     std::string m_Address;
     std::unique_ptr<proxy::socks_local_router> m_Proxy;
-    std::unique_ptr<MutexImpl> m_Lock;
+    mutable std::mutex m_Lock;
 };

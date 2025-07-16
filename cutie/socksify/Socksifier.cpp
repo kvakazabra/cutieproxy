@@ -1,18 +1,5 @@
 #include "Socksifier.h"
 
-struct MutexImpl
-{
-    std::mutex lock;
-
-    operator std::mutex&() {
-        return lock;
-    }
-
-    operator const std::mutex&() const {
-        return lock;
-    }
-};
-
 Socksifier::Socksifier(const TLogLevel log_level) :
     m_LogLevel{ log_level }
 {
@@ -25,29 +12,27 @@ Socksifier::Socksifier(const TLogLevel log_level) :
         printLog(TLogLevel::info, "WSAStartup failed with error\n");
     }
 
-    m_Lock = std::make_unique<MutexImpl>();
-
     printLog(TLogLevel::info, "Creating SOCKS5 Local Router instance..."s);
 
-    auto um_log_level = netlib::log::log_level::all;
+    auto logLevel = netlib::log::log_level::all;
 
     switch (m_LogLevel)
     {
     case TLogLevel::none:
-        um_log_level = netlib::log::log_level::error;
+        logLevel = netlib::log::log_level::error;
         break;
     case TLogLevel::info:
-        um_log_level = netlib::log::log_level::info;
+        logLevel = netlib::log::log_level::info;
         break;
     case TLogLevel::deb:
-        um_log_level = netlib::log::log_level::debug;
+        logLevel = netlib::log::log_level::debug;
         break;
     case TLogLevel::all:
-        um_log_level = netlib::log::log_level::all;
+        logLevel = netlib::log::log_level::all;
         break;
     }
     
-    m_Proxy = std::make_unique<proxy::socks_local_router>(um_log_level, logger::get_instance()->get_log_stream());
+    m_Proxy = std::make_unique<proxy::socks_local_router>(logLevel);// , logger::get_instance()->get_log_stream());
 
     if (!m_Proxy)
     {
@@ -151,35 +136,35 @@ bool Socksifier::associateProcessNameToProxy(const std::wstring& process_name,
 // ReSharper disable once CppMemberFunctionMayBeStatic
 void Socksifier::setLogLimit(const uint32_t log_limit)
 {
-    logger::get_instance()->set_log_limit(log_limit);
+    //logger::get_instance()->set_log_limit(log_limit);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
 uint32_t Socksifier::getLogLimit()
 {
-    return logger::get_instance()->get_log_limit();
+    return { };
+    //return logger::get_instance()->get_log_limit();
 }
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
 void Socksifier::setLogEvent(HANDLE log_event)
 {
-    logger::get_instance()->set_log_event(log_event);
+    //logger::get_instance()->set_log_event(log_event);
 }
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
 TLogStorage Socksifier::readLog()
 {
-    return logger::get_instance()->read_log().value_or(TLogStorage{});
+    return { };
+    //return logger::get_instance()->read_log().value_or(TLogStorage{});
 }
 
 void Socksifier::logPrinter(const char* log)
 {
-    logger::get_instance()->log_printer(log);
+    //logger::get_instance()->log_printer(log);
 }
 
 void Socksifier::logEvent(const TEvent log)
 {
-    logger::get_instance()->log_event(log);
+    //logger::get_instance()->log_event(log);
 }
 
 void Socksifier::printLog(const TLogLevel level, const std::string& message) const
