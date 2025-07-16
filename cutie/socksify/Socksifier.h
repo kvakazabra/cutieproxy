@@ -19,7 +19,7 @@ public:
 
     bool start() const;
     bool stop() const;
-    LONG_PTR addSocks5Proxy(
+    std::optional<std::size_t> addSocks5Proxy(
         const std::string& endpoint,
         TSupportedProtocols protocol,
         bool start = false,
@@ -28,7 +28,7 @@ public:
     ) const;
     bool associateProcessNameToProxy(
         const std::wstring& process_name,
-        LONG_PTR proxy_id) const;
+        std::size_t proxy_id) const;
     void setLogLimit(uint32_t log_limit);
     uint32_t getLogLimit();
     void setLogEvent(HANDLE log_event);
