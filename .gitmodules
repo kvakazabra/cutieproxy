@@ -1,0 +1,4 @@
+[submodule "ndisapi"]
+	path = ndisapi
+	url = git@github.com:kvakazabra/ndisapi-cmake.git
+	branch = cmake-master
