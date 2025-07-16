@@ -10,13 +10,30 @@ set(CMAKE_AUTORCC ON)
 set(PLATFORM "x64")
 set(CMAKE_CXX_STANDARD 23)
 
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
+set(SOURCES
+	${CMAKE_CURRENT_LIST_DIR}/main.cpp
+	${CMAKE_CURRENT_LIST_DIR}/ui/CpWindow.cpp
+	${CMAKE_CURRENT_LIST_DIR}/socksify/Socksifier.cpp
+)
 
-add_executable(cutie ${SOURCES})
+set(UI 
+	${CMAKE_CURRENT_LIST_DIR}/ui/CpWindow.ui
+)
+
+add_executable(cutie ${SOURCES} ${UI})
 
 target_link_libraries(cutie PRIVATE 
 	netlib
+	ndisapi
+	Microsoft.GSL::GSL
 	Qt6::Core
 	Qt6::Gui
 	Qt6::Widgets
+)
+
+set(PLATFORM "x64")
+
+set_target_properties(cutie PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin-${PLATFORM}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin-${PLATFORM}"
 )
