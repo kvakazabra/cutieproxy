@@ -1,109 +1,74 @@
 #include "Socksifier.h"
 
-Socksifier::Socksifier(const TLogLevel log_level) :
-    m_LogLevel{ log_level } {
-    using namespace std::string_literals;
-
-    WSADATA wsa_data;
-
-    if (constexpr auto version_requested = MAKEWORD(2, 2); ::WSAStartup(version_requested, &wsa_data) != 0) {
+Socksifier::Socksifier(const TLogLevel logLevel) :
+    m_LogLevel{ logLevel } {
+    WSADATA wsaData{ };
+    if (WORD versionRequested = MAKEWORD(2, 2); ::WSAStartup(versionRequested, &wsaData) != 0) {
         printLog(TLogLevel::info, "WSAStartup failed with error\n");
     }
 
-    printLog(TLogLevel::info, "Creating SOCKS5 Local Router instance..."s);
+    printLog(TLogLevel::info, "Creating SOCKS5 Local Router instance...");
 
-    auto logLevel = netlib::log::log_level::all;
-
-    switch (m_LogLevel) {
-    case TLogLevel::none:
-        logLevel = netlib::log::log_level::error;
-        break;
-    case TLogLevel::info:
-        logLevel = netlib::log::log_level::info;
-        break;
-    case TLogLevel::deb:
-        logLevel = netlib::log::log_level::debug;
-        break;
-    case TLogLevel::all:
-        logLevel = netlib::log::log_level::all;
-        break;
-    }
-    
     m_Proxy = std::make_unique<proxy::socks_local_router>(logLevel);// , logger::get_instance()->get_log_stream());
 
     if (!m_Proxy) {
-        printLog(TLogLevel::info, "[ERROR]: Failed to create the SOCKS5 Local Router instance!"s);
+        printLog(TLogLevel::info, "[ERROR]: Failed to create the SOCKS5 Local Router instance!");
         throw std::runtime_error("[ERROR]: Failed to create the SOCKS5 Local Router instance!");
     }
 
-    printLog(TLogLevel::info, "SOCKS5 Local Router instance successfully created."s);
+    printLog(TLogLevel::info, "SOCKS5 Local Router instance successfully created.");
 }
 
 Socksifier::~Socksifier() {
     WSACleanup();
 }
 
-Socksifier* Socksifier::get(const TLogLevel log_level) {
-    static Socksifier inst(log_level); // NOLINT(clang-diagnostic-exit-time-destructors)
+Socksifier* Socksifier::get(const TLogLevel logLevel) {
+    static Socksifier inst(logLevel); // NOLINT(clang-diagnostic-exit-time-destructors)
     return &inst;
 }
 
 bool Socksifier::start() const {
-    using namespace std::string_literals;
     std::lock_guard lock(m_Lock);
 
     if (!m_Proxy->start()) {
-        printLog(TLogLevel::info, "[ERROR]: Failed to start the SOCKS5 Local Router instance!"s);
+        printLog(TLogLevel::info, "[ERROR]: Failed to start the SOCKS5 Local Router instance!");
         return false;
     }
 
-    printLog(TLogLevel::info, "SOCKS5 Local Router instance started successfully."s);
+    printLog(TLogLevel::info, "SOCKS5 Local Router instance started successfully.");
     return true;
 }
 
 bool Socksifier::stop() const {
-    using namespace std::string_literals;
     std::lock_guard lock(m_Lock);
 
     if (!m_Proxy) {
         printLog(TLogLevel::info,
-            "[ERROR]: Failed to stop the SOCKS5 Local Router instance. Instance does not exist."s);
+            "[ERROR]: Failed to stop the SOCKS5 Local Router instance. Instance does not exist.");
         return false;
     }
 
     if (m_Proxy->stop()) {
-        printLog(TLogLevel::info, "[ERROR]: Failed to stop the SOCKS5 Local Router instance."s);
+        printLog(TLogLevel::info, "[ERROR]: Failed to stop the SOCKS5 Local Router instance.");
         return false;
     }
 
-    printLog(TLogLevel::info, "SOCKS5 Local Router instance stopped successfully."s);
+    printLog(TLogLevel::info, "SOCKS5 Local Router instance stopped successfully.");
 
     return true;
 }
 
 std::optional<std::size_t> Socksifier::addSocks5Proxy(
     const std::string& endpoint,
-    const TSupportedProtocols protocol,
+    const TSupportedProtocols protocols,
     const bool start,
     const std::string& login,
     const std::string& password) const {
-    using namespace std::string_literals;
     std::optional<std::pair<std::string, std::string>> cred{ std::nullopt };
 
-    if (login != ""s) {
+    if (!login.empty()) {
         cred = std::make_pair(login, password);
-    }
-
-    proxy::socks_local_router::supported_protocols protocols = proxy::socks_local_router::supported_protocols::both;
-    switch (protocol) {
-    case TSupportedProtocols::tcp:
-        protocols = proxy::socks_local_router::supported_protocols::tcp;
-        break;
-    case TSupportedProtocols::udp:
-        protocols = proxy::socks_local_router::supported_protocols::udp;
-        break;
-    default:
-        break;
     }
 
     return m_Proxy->add_socks5_proxy(endpoint, protocols, cred, start);

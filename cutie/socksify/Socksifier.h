@@ -39,7 +39,7 @@ private:
     static void logEvent(TEvent log);
     void printLog(TLogLevel level, const std::string& message) const;
 
-    TLogLevel m_LogLevel{ TLogLevel::none };
+    TLogLevel m_LogLevel{ TLogLevel::error };
     std::string m_Address;
     std::unique_ptr<proxy::socks_local_router> m_Proxy;
     mutable std::mutex m_Lock;

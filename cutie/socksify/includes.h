@@ -79,13 +79,7 @@
 #include <netlib/iphelper/process_lookup.h>
 #include <netlib/proxy/socks_local_router.h>
 
-enum class TLogLevel
-{
-    none = 0,
-    info = 1,
-    deb = 2,
-    all = 3,
-};
+using TLogLevel = netlib::log::log_level;
 
 enum class TStatus
 {
@@ -95,12 +89,7 @@ enum class TStatus
     error
 };
 
-enum class TSupportedProtocols
-{
-    tcp,
-    udp,
-    both
-};
+using TSupportedProtocols = proxy::socks_local_router::supported_protocols;
 
 enum class TEventType : uint32_t
 {
