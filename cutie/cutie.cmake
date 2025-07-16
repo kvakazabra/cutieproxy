@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(cutie LANGUAGES CXX)
+project(cutie)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 
