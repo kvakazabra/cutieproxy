@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 project(cutie)
 
-find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Network REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -29,6 +29,7 @@ target_link_libraries(cutie PRIVATE
 	Qt6::Core
 	Qt6::Gui
 	Qt6::Widgets
+	Qt6::Network
 )
 
 set(PLATFORM "x64")
