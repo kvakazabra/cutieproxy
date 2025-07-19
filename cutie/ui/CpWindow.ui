@@ -59,7 +59,7 @@
            <x>10</x>
            <y>30</y>
            <width>241</width>
-           <height>174</height>
+           <height>202</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -195,6 +195,9 @@
              </spacer>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="importLineEdit"/>
           </item>
           <item>
            <widget class="QPushButton" name="addProxyButton">
