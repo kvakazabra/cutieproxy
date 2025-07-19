@@ -1,5 +1,4 @@
 #pragma once
-
 #define NOMINMAX 1
 
 #pragma comment(lib, "ndisapi.lib")

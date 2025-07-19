@@ -13,7 +13,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/ui/CpWindow.cpp
-	${CMAKE_CURRENT_LIST_DIR}/socksify/Socksifier.cpp
+	${CMAKE_CURRENT_LIST_DIR}/core/Socksifier.cpp
+	${CMAKE_CURRENT_LIST_DIR}/core/Filter.cpp
+	${CMAKE_CURRENT_LIST_DIR}/core/QProxyItem.cpp
 )
 
 set(UI 

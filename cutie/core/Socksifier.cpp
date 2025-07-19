@@ -75,7 +75,7 @@ std::optional<std::size_t> Socksifier::addSocks5Proxy(
 }
 
 bool Socksifier::associateProcessNameToProxy(const std::wstring& process_name, std::size_t proxy_id) const {
-    return m_Proxy->associate_process_name_to_proxy(process_name, static_cast<size_t>(proxy_id));
+    return m_Proxy->associate_process_name_to_proxy(process_name, proxy_id);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
