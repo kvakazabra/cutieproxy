@@ -23,11 +23,6 @@ Socksifier::~Socksifier() {
     WSACleanup();
 }
 
-Socksifier* Socksifier::get(const TLogLevel logLevel) {
-    static Socksifier inst(logLevel); // NOLINT(clang-diagnostic-exit-time-destructors)
-    return &inst;
-}
-
 bool Socksifier::start() const {
     std::lock_guard lock(m_Lock);
 
@@ -74,8 +69,12 @@ std::optional<std::size_t> Socksifier::addSocks5Proxy(
     return m_Proxy->add_socks5_proxy(endpoint, protocols, cred, start);
 }
 
-bool Socksifier::associateProcessNameToProxy(const std::wstring& process_name, std::size_t proxy_id) const {
-    return m_Proxy->associate_process_name_to_proxy(process_name, proxy_id);
+bool Socksifier::stopSocks5Proxy(std::size_t proxyId) const {
+    return m_Proxy->stop_socks5_proxy(proxyId);
+}
+
+bool Socksifier::addFilterToProxy(std::size_t proxy_id, const std::shared_ptr<Filter>& filter) const {
+    return m_Proxy->add_filter_to_proxy(proxy_id, filter);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic

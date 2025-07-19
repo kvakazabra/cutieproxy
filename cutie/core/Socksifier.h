@@ -1,13 +1,14 @@
 #pragma once
 #include "includes.h"
+#include "Filter.h"
 
 namespace proxy {
     class socks_local_router;
 }
 
 class Socksifier {
-    explicit Socksifier(TLogLevel log_level);
 public:
+    explicit Socksifier(TLogLevel log_level);
     ~Socksifier();
 
     Socksifier(const Socksifier& other) = delete;
@@ -15,7 +16,7 @@ public:
     Socksifier& operator=(const Socksifier& other) = delete;
     Socksifier& operator=(Socksifier&& other) = delete;
 
-    static Socksifier* get(TLogLevel log_level = TLogLevel::all);
+    //static Socksifier* get(TLogLevel log_level = TLogLevel::all);
 
     bool start() const;
     bool stop() const;
@@ -26,9 +27,8 @@ public:
         const std::string& login = "",
         const std::string& password = ""
     ) const;
-    bool associateProcessNameToProxy(
-        const std::wstring& process_name,
-        std::size_t proxy_id) const;
+    bool stopSocks5Proxy(std::size_t proxyId) const;
+    bool addFilterToProxy(std::size_t proxy_id, const std::shared_ptr<Filter>& filter) const;
     void setLogLimit(uint32_t log_limit);
     uint32_t getLogLimit();
     void setLogEvent(HANDLE log_event);

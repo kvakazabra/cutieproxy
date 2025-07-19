@@ -16,10 +16,13 @@ private:
 	void init();
 	void connectSignals();
 
+	void processProxyItems();
+	void settingsChanged();
 private Q_SLOTS:
 	void addProxyItem();
 private:
-	Socksifier* m_SocksifierInstance{ };
+	//Socksifier* m_Socksifier{ };
+	std::unique_ptr<Socksifier> m_Socksifier{ };
 	Ui_MainWindow* m_Ui{ };
 
 	bool m_Started{ };

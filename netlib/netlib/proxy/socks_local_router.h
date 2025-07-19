@@ -32,8 +32,8 @@ namespace proxy
         // Vector storing pairs of unique pointers to TCP and UDP proxy servers
         std::vector<std::pair<std::unique_ptr<s5_tcp_proxy_server>, std::unique_ptr<s5_udp_proxy_server>>>
         proxy_servers_;
-        // Maps process names to their corresponding proxy indexes
-        std::unordered_map<std::wstring, size_t> name_to_proxy_;
+        
+        std::unordered_map<std::size_t, std::vector<std::shared_ptr<iphelper::filter_interface>>> proxy_to_filters{ };
         // Shared mutex to protect concurrent access to shared resources
         std::shared_mutex lock_;
         // Information of the default network adapter
@@ -545,13 +545,32 @@ namespace proxy
         }
 
         /**
-         * Associates a process name to a specific proxy ID. This function is thread-safe.
-         * @param process_name the name of the process to associate with a proxy
-         * @param proxy_id the ID of the proxy server to associate with the process
-         * @return True if the association was successful, False otherwise
+         * Stops proxy servers
+         * @param proxy_id the ID of the proxy server
+         * @return True if the operation was successful, False otherwise
          */
-        bool associate_process_name_to_proxy(const std::wstring& process_name, const size_t proxy_id)
-        {
+        bool stop_socks5_proxy(std::size_t proxy_id) {
+            std::lock_guard lock(lock_);
+
+            if (proxy_id >= proxy_servers_.size()) {
+                return false;
+            }
+
+            auto& [tcp, udp] = proxy_servers_.at(proxy_id);
+            if (tcp) {
+                tcp->stop();
+                tcp = { };
+            }
+
+            if (udp) {
+                udp->stop();
+                udp = { };
+            }
+
+            return true;
+        }
+
+        bool add_filter_to_proxy(std::size_t proxy_id, const std::shared_ptr<iphelper::filter_interface>& filter) {
             // The lock_guard object acquires the lock in a safe manner, 
             // ensuring it gets released even if an exception is thrown.
             std::lock_guard lock(lock_);
@@ -560,15 +579,33 @@ namespace proxy
             if (proxy_id >= proxy_servers_.size())
             {
                 print_log(log_level::error,
-                          "associate_process_name_to_proxy: proxy index is out of range!");
+                    "associate_process_name_to_proxy: proxy index is out of range!");
                 return false; // Return false since the proxy_id is out of range
             }
 
-            // Associate the given process name to the specified proxy ID. 
-            // If the process_name already exists in the map, its associated proxy ID is updated.
-            name_to_proxy_[to_upper(process_name)] = proxy_id;
+            proxy_to_filters[proxy_id].push_back(filter);
 
-            return true; // Return true to indicate the association was successful
+            return true;
+        }
+
+        bool add_filter_to_proxy(std::size_t proxy_id, const std::vector<std::shared_ptr<iphelper::filter_interface>>& filters) {
+            // The lock_guard object acquires the lock in a safe manner, 
+            // ensuring it gets released even if an exception is thrown.
+            std::lock_guard lock(lock_);
+
+            // Check if the provided proxy ID is within the range of available proxies
+            if (proxy_id >= proxy_servers_.size())
+            {
+                print_log(log_level::error,
+                    "associate_process_name_to_proxy: proxy index is out of range!");
+                return false; // Return false since the proxy_id is out of range
+            }
+
+            for (auto& ptr : filters) {
+                proxy_to_filters[proxy_id].push_back(ptr);
+            }
+
+            return true;
         }
 
         /**
@@ -677,15 +714,15 @@ namespace proxy
             // Locks the proxy servers and process to proxy map for reading.
             std::shared_lock lock(lock_);
 
-            // Iterate through each pair in the process to proxy mapping.
-            for (auto& [name, proxy_id] : name_to_proxy_)
-            {
-                // Check if the current process name contains the given process name.
-                if (match_app_name(name, process))
-                    // If it does, return the TCP proxy port associated with the proxy ID.
-                    return proxy_servers_[proxy_id].first
-                               ? std::optional(proxy_servers_[proxy_id].first->proxy_port())
-                               : std::nullopt;
+            for (auto& [proxy_id, filters] : proxy_to_filters) {
+                for (auto& filter : filters) {
+                    // Filters can be reimplemented
+                    if (filter->match(process)) {
+                        return proxy_servers_[proxy_id].first
+                            ? std::optional(proxy_servers_[proxy_id].first->proxy_port())
+                            : std::nullopt;
+                    }
+                }
             }
 
             // If the process name is not found in any of the keys, return an empty std::optional.
@@ -703,15 +740,15 @@ namespace proxy
             // Locks the proxy servers and process to proxy map for reading.
             std::shared_lock lock(lock_);
 
-            // Iterate through each pair in the process to proxy mapping.
-            for (auto& [name, proxy_id] : name_to_proxy_)
-            {
-                // Check if the current process name contains the given process name.
-                if (match_app_name(name, process))
-                    // If it does, return the UDP proxy port associated with the proxy ID.
-                    return proxy_servers_[proxy_id].second
-                               ? std::optional(proxy_servers_[proxy_id].second->proxy_port())
-                               : std::nullopt;
+            for (auto& [proxy_id, filters] : proxy_to_filters) {
+                for (auto& filter : filters) {
+                    // Filters can be reimplemented
+                    if (filter->match(process)) {
+                        return proxy_servers_[proxy_id].second
+                            ? std::optional(proxy_servers_[proxy_id].second->proxy_port())
+                            : std::nullopt;
+                    }
+                }
             }
 
             // If the process name is not found in any of the keys, return an empty std::optional.

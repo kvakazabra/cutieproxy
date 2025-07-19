@@ -1,5 +1,7 @@
 #include "CpWindow.h"
 
+#include "../core/QProxyItem.h"
+
 #include <QObject>
 #include <QHostAddress>
 #include <QMessageBox>
@@ -7,8 +9,6 @@
 CpWindow::CpWindow() 
 	: m_Ui{ new Ui_MainWindow() } {
 	m_Ui->setupUi(this);
-
-	m_SocksifierInstance = Socksifier::get();
 
 	init();
 	connectSignals();
@@ -33,7 +33,10 @@ void CpWindow::connectSignals() {
 		}
 
 		m_Started = true;
-		m_SocksifierInstance->start();
+
+		m_Socksifier = std::make_unique<Socksifier>(TLogLevel::all);
+		processProxyItems();
+		m_Socksifier->start();
 
 		m_Ui->stopButton->setEnabled(true);
 		m_Ui->startButton->setDisabled(true);
@@ -47,7 +50,8 @@ void CpWindow::connectSignals() {
 		}
 
 		m_Started = false;
-		m_SocksifierInstance->stop();
+		m_Socksifier->stop();
+		m_Socksifier = { };
 
 		m_Ui->startButton->setEnabled(true);
 		m_Ui->stopButton->setDisabled(true);
@@ -62,30 +66,49 @@ void CpWindow::connectSignals() {
 		submenu.addAction("Delete");
 
 		QAction* selectedAction = submenu.exec(item);
-		if (selectedAction && selectedAction->text().contains("Delete"))
-		{
+		if (selectedAction && selectedAction->text().contains("Delete")) {
 			QModelIndex modelIndex = m_Ui->proxyList->indexAt(p);
 
-			bool isOk{ };
-			std::size_t proxyId = modelIndex.data(Qt::UserRole).toULongLong(&isOk);
-			if (!isOk) {
-				QMessageBox::critical(this, QObject::tr("Info"), QObject::tr("Can't delete #1!"), QMessageBox::StandardButton::Ok);
-				return;
-			}
-
-			m_SocksifierInstance->stop();
-			if (!m_SocksifierInstance->stopSocks5Proxy(proxyId)) {
-				QMessageBox::critical(this, QObject::tr("Info"), QObject::tr("Can't delete #2!"), QMessageBox::StandardButton::Ok);
-				return;
-			}
-
 			m_Ui->proxyList->takeItem(modelIndex.row());
+
+			settingsChanged();
 		}
 		});
 }
 
+void CpWindow::processProxyItems() {
+	for (int i = 0; i < m_Ui->proxyList->count(); ++i) {
+		QProxyItem* proxyItem = dynamic_cast<QProxyItem*>(m_Ui->proxyList->item(i));
+		if (!proxyItem) {
+			continue;
+		}
+
+		if (proxyItem->error() != TProxyErrorType::None) {
+			continue;
+		}
+
+		std::optional<std::size_t> proxyId = m_Socksifier->addSocks5Proxy(proxyItem->endpoint().toStdString(),
+			proxyItem->protocols(), true, proxyItem->username().toStdString(), proxyItem->password().toStdString());
+		if (!proxyId.has_value()) {
+			continue;
+		}
+
+		for (auto& filter : proxyItem->filters()) {
+			m_Socksifier->addFilterToProxy(proxyId.value(), filter);
+		}
+	}
+}
+
+void CpWindow::settingsChanged() {
+	// alert user that restart is needed to apply them
+}
+
 void CpWindow::addProxyItem() {
 	auto processImportLineEdit = [this]() -> void {
+		if (m_Ui->importLineEdit->text().isEmpty()) {
+			return;
+		}
+
 		QRegularExpression regex("(.*):(.*)@(.*):(.*)", QRegularExpression::PatternOption::NoPatternOption);
 		QRegularExpressionMatch match = regex.match(m_Ui->importLineEdit->text());
 		
@@ -104,61 +127,49 @@ void CpWindow::addProxyItem() {
 		for (qsizetype i = 0; i < captured.size() && i < 4; i++) {
 			fields[i]->setText(captured[i + 1]);
 		}
-		};
-
-	if (!m_Ui->importLineEdit->text().isEmpty()) {
-		processImportLineEdit();
-		// (.*):(.*)@(.*):(.*)
-	}
-
-	auto validateIPv4Address = [](const QString& ipv4) -> bool {
-		return QHostAddress(ipv4).protocol() == QHostAddress::NetworkLayerProtocol::IPv4Protocol;
 	};
 
-	if (!validateIPv4Address(m_Ui->ipLineEdit->text())) {
-		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Enter a valid IPv4 address!"), QMessageBox::StandardButton::Ok);
-		return;
-	}
+	processImportLineEdit();
 
-	bool isOk{ };
-	int port = m_Ui->portLineEdit->text().toInt(&isOk, 10);
-	if (!isOk || port <= 0 || port > 65535) {
-		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Enter a valid port!"), QMessageBox::StandardButton::Ok);
-		return;
-	}
+	QProxyItem* item = new QProxyItem(
+		m_Ui->ipLineEdit->text(), 
+		m_Ui->portLineEdit->text(), 
+		m_Ui->usernameLineEdit->text(), 
+		m_Ui->passwordLineEdit->text(), 
+		m_Ui->tcpCheckbox->isChecked(), 
+		m_Ui->udpCheckbox->isChecked()
+	);
 
-	static_assert(
-		TSupportedProtocols::both == 3 &&
-		TSupportedProtocols::udp == 2 &&
-		TSupportedProtocols::tcp == 1);
-
-	// obscure code
-	// tcp = 1, udp = 2 if we | 'em we'll get TSupportedProtocols::both
-	// left shift is needed for the udp to get true value of TSupportedProtocols::udp instead of boolean of a checkbox
-	TSupportedProtocols protocols{static_cast<TSupportedProtocols>(
-			(static_cast<std::uint8_t>(m_Ui->tcpCheckbox->isChecked()) << 0) | (static_cast<std::uint8_t>(m_Ui->udpCheckbox->isChecked()) << 1)
-		)};
-	// meaning nothing was selected
-	if (static_cast<std::uint8_t>(protocols) == 0) {
+	switch (item->error()) {
+	case TProxyErrorType::NoProtocols:
 		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("How are you gonna use proxy without TCP and UDP?"), QMessageBox::StandardButton::Ok);
+		delete item; item = nullptr;
 		return;
+	case TProxyErrorType::InvalidIPv4:
+		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Enter a valid IPv4 address!"), QMessageBox::StandardButton::Ok);
+		delete item; item = nullptr;
+		return;
+	case TProxyErrorType::InvalidPort:
+		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Enter a valid port!"), QMessageBox::StandardButton::Ok);
+		delete item; item = nullptr;
+		return;
+	default:
+		break;
 	}
 
-	QString endpoint = m_Ui->ipLineEdit->text() + QString(":") + m_Ui->portLineEdit->text();
+	m_Ui->proxyList->addItem(item);
 
-	std::optional<std::size_t> p = m_SocksifierInstance->addSocks5Proxy(
+	/*std::optional<std::size_t> p = m_Socksifier->addSocks5Proxy(
 		endpoint.toStdString(), protocols, true, 
 		m_Ui->usernameLineEdit->text().toStdString(),
 		m_Ui->passwordLineEdit->text().toStdString());
 	if (!p.has_value()) {
 		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Failed creating proxy object!"), QMessageBox::StandardButton::Ok);
 		return;
-	}
+	}*/
 
-	QListWidgetItem* item = new QListWidgetItem(endpoint);
-	item->setData(Qt::UserRole, QVariant(p.value()));
-	m_Ui->proxyList->addItem(item);
+	//item->setData(Qt::UserRole, QVariant(p.value()));
 
-	m_SocksifierInstance->associateProcessNameToProxy(L"msedge", p.value());
-	QMessageBox::information(this, QObject::tr("Info"), QObject::tr("Added %1!").arg(p.value()), QMessageBox::StandardButton::Ok);
+	//m_Socksifier->associateProcessNameToProxy(m_Ui->procName->text().toStdWString(), p.value());
+	//QMessageBox::information(this, QObject::tr("Info"), QObject::tr("Added %1!").arg(p.value()), QMessageBox::StandardButton::Ok);
 }
