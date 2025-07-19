@@ -54,7 +54,7 @@ namespace proxy
     public:
         enum supported_protocols : uint8_t
         {
-            tcp,
+            tcp = 1,
             udp,
             both
         };
