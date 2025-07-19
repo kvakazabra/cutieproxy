@@ -90,6 +90,7 @@ void CpWindow::processProxyItems() {
 		std::optional<std::size_t> proxyId = m_Socksifier->addSocks5Proxy(proxyItem->endpoint().toStdString(),
 			proxyItem->protocols(), true, proxyItem->username().toStdString(), proxyItem->password().toStdString());
 		if (!proxyId.has_value()) {
+			QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Failed registering a proxy!"), QMessageBox::StandardButton::Ok);
 			continue;
 		}
 
@@ -158,18 +159,4 @@ void CpWindow::addProxyItem() {
 	}
 
 	m_Ui->proxyList->addItem(item);
-
-	/*std::optional<std::size_t> p = m_Socksifier->addSocks5Proxy(
-		endpoint.toStdString(), protocols, true, 
-		m_Ui->usernameLineEdit->text().toStdString(),
-		m_Ui->passwordLineEdit->text().toStdString());
-	if (!p.has_value()) {
-		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Failed creating proxy object!"), QMessageBox::StandardButton::Ok);
-		return;
-	}*/
-
-	//item->setData(Qt::UserRole, QVariant(p.value()));
-
-	//m_Socksifier->associateProcessNameToProxy(m_Ui->procName->text().toStdWString(), p.value());
-	//QMessageBox::information(this, QObject::tr("Info"), QObject::tr("Added %1!").arg(p.value()), QMessageBox::StandardButton::Ok);
 }
