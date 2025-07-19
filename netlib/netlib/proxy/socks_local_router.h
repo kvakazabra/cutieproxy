@@ -1,4 +1,6 @@
 #pragma once
+#include "proxy_common.h"
+
 namespace proxy
 {
     class socks_local_router :

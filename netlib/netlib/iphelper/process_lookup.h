@@ -30,6 +30,11 @@ namespace iphelper
         std::wstring path_name;
     };
 
+    class filter_interface {
+    public:
+        virtual bool match(const std::shared_ptr<iphelper::network_process>& process) const = 0;
+    };
+
     // --------------------------------------------------------------------------------
     /// <summary>
     /// process_lookup class utilizes IP Helper API to match TCP/UDP network packet to local process

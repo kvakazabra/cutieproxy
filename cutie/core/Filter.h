@@ -24,7 +24,7 @@ enum class TStringMatchType {
     RegExp,
 };
 
-class Filter {
+class Filter : public iphelper::filter_interface {
     using TProcessId = decltype(iphelper::network_process::id);
 public:
     Filter(TFilterType type);
@@ -36,7 +36,7 @@ public:
     Filter(const Filter& other) = default;
     Filter& operator=(const Filter& other) = default;
 public:
-    auto match(const std::shared_ptr<iphelper::network_process>& process) const -> bool;
+    virtual bool match(const std::shared_ptr<iphelper::network_process>& process) const override;
 
     auto pattern() const -> const std::wstring&;
     auto isCaseSensitive() const -> bool;
