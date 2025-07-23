@@ -32,6 +32,8 @@ public:
 	TProxyErrorType error() const;
 
 	void addFilter(const std::shared_ptr<Filter>& filter);
+	void copyFiltersFrom(QProxyItem* other);
+	void copyFiltersTo(QProxyItem* other);
 	const std::vector<std::shared_ptr<Filter>>& filters();
 private:
 	QString m_IPv4{ }, m_Port{ };

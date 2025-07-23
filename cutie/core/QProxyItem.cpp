@@ -9,7 +9,13 @@ QProxyItem::QProxyItem(const QString& ipv4, const QString& port, const QString& 
 
 	m_ErrorType = TProxyErrorType::Invalid;
 
-	if (m_IPv4.isEmpty() || m_Port.isEmpty()) {
+	if (m_IPv4.isEmpty()) {
+		m_ErrorType = TProxyErrorType::InvalidIPv4;
+		return;
+	}
+
+	if (m_Port.isEmpty()) {
+		m_ErrorType = TProxyErrorType::InvalidPort;
 		return;
 	}
 
@@ -83,6 +89,14 @@ TProxyErrorType QProxyItem::error() const {
 
 void QProxyItem::addFilter(const std::shared_ptr<Filter>& filter) {
 	m_Filters.emplace_back(filter);
+}
+
+void QProxyItem::copyFiltersFrom(QProxyItem* from) {
+	this->m_Filters = from->m_Filters;
+}
+
+void QProxyItem::copyFiltersTo(QProxyItem* to) {
+	to->m_Filters = this->m_Filters;
 }
 
 const std::vector<std::shared_ptr<Filter>>& QProxyItem::filters() {
