@@ -73,7 +73,7 @@ bool Socksifier::stopSocks5Proxy(std::size_t proxyId) const {
     return m_Proxy->stop_socks5_proxy(proxyId);
 }
 
-bool Socksifier::addFilterToProxy(std::size_t proxy_id, const std::shared_ptr<Filter>& filter) const {
+bool Socksifier::addFilterToProxy(std::size_t proxy_id, const std::shared_ptr<iphelper::filter_interface>& filter) const {
     return m_Proxy->add_filter_to_proxy(proxy_id, filter);
 }
 

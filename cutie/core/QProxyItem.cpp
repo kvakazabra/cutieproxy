@@ -87,7 +87,7 @@ TProxyErrorType QProxyItem::error() const {
 	return m_ErrorType;
 }
 
-void QProxyItem::addFilter(const std::shared_ptr<Filter>& filter) {
+void QProxyItem::addFilter(const std::shared_ptr<iphelper::filter_interface>& filter) {
 	m_Filters.emplace_back(filter);
 }
 
@@ -99,6 +99,6 @@ void QProxyItem::copyFiltersTo(QProxyItem* to) {
 	to->m_Filters = this->m_Filters;
 }
 
-const std::vector<std::shared_ptr<Filter>>& QProxyItem::filters() {
+const std::vector<std::shared_ptr<iphelper::filter_interface>>& QProxyItem::filters() {
 	return m_Filters;
 }

@@ -28,7 +28,7 @@ public:
         const std::string& password = ""
     ) const;
     bool stopSocks5Proxy(std::size_t proxyId) const;
-    bool addFilterToProxy(std::size_t proxy_id, const std::shared_ptr<Filter>& filter) const;
+    bool addFilterToProxy(std::size_t proxy_id, const std::shared_ptr<iphelper::filter_interface>& filter) const;
     void setLogLimit(uint32_t log_limit);
     uint32_t getLogLimit();
     void setLogEvent(HANDLE log_event);

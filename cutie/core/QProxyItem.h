@@ -31,15 +31,15 @@ public:
 
 	TProxyErrorType error() const;
 
-	void addFilter(const std::shared_ptr<Filter>& filter);
+	void addFilter(const std::shared_ptr<iphelper::filter_interface>& filter);
 	void copyFiltersFrom(QProxyItem* other);
 	void copyFiltersTo(QProxyItem* other);
-	const std::vector<std::shared_ptr<Filter>>& filters();
+	const std::vector<std::shared_ptr<iphelper::filter_interface>>& filters();
 private:
 	QString m_IPv4{ }, m_Port{ };
 	QString m_Username{ }, m_Password{ };
 	TSupportedProtocols m_Protocols{ };
 
 	TProxyErrorType m_ErrorType{ };
-	std::vector<std::shared_ptr<Filter>> m_Filters{ };
+	std::vector<std::shared_ptr<iphelper::filter_interface>> m_Filters{ };
 };
