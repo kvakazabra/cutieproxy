@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/ui/CpWindow.cpp
+	${CMAKE_CURRENT_LIST_DIR}/ui/CpProxyDialog.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/Socksifier.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/Filter.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/QProxyItem.cpp
@@ -20,6 +21,7 @@ set(SOURCES
 
 set(UI 
 	${CMAKE_CURRENT_LIST_DIR}/ui/CpWindow.ui
+	${CMAKE_CURRENT_LIST_DIR}/ui/CpProxyDialog.ui
 )
 
 add_executable(cutie ${SOURCES} ${UI})

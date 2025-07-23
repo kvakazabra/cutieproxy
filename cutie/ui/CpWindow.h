@@ -21,7 +21,6 @@ private:
 private Q_SLOTS:
 	void addProxyItem();
 private:
-	//Socksifier* m_Socksifier{ };
 	std::unique_ptr<Socksifier> m_Socksifier{ };
 	Ui_MainWindow* m_Ui{ };
 

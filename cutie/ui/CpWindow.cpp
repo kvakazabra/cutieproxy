@@ -1,4 +1,5 @@
 #include "CpWindow.h"
+#include "CpProxyDialog.h"
 
 #include "../core/QProxyItem.h"
 
@@ -21,7 +22,22 @@ CpWindow::~CpWindow() {
 
 void CpWindow::init() {
 	m_Ui->stopButton->setDisabled(true);
+
 	m_Ui->proxyList->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+	m_Ui->proxyList->setTextElideMode(Qt::ElideNone);
+	m_Ui->proxyList->setStyleSheet(
+		"QListWidget::item {"
+		"   padding: 10px 0px;"  // top/bottom padding of 10px, left/right of 0px
+		"   border-bottom: 1px solid #eeeeee;"  // optional separator
+		"}"
+		"QListWidget::item:hover {"
+		"   background-color: #aaaaaa;"
+		"}"
+		"QListWidget::item:selected {"
+		"   background-color: #e0e0e0;"
+		"   color: black;"
+		"}"
+	);
 }
 
 void CpWindow::connectSignals() {
@@ -63,12 +79,39 @@ void CpWindow::connectSignals() {
 		QPoint item = m_Ui->proxyList->mapToGlobal(p);
 
 		QMenu submenu{ };
-		submenu.addAction("Delete");
+		auto editAction = submenu.addAction("Edit");
+		auto deleteAction = submenu.addAction("Delete");
 
 		QAction* selectedAction = submenu.exec(item);
-		if (selectedAction && selectedAction->text().contains("Delete")) {
-			QModelIndex modelIndex = m_Ui->proxyList->indexAt(p);
+		if (!selectedAction) {
+			return;
+		}
 
+		QModelIndex modelIndex = m_Ui->proxyList->indexAt(p);
+
+		if (selectedAction == editAction) {
+			QProxyItem* item = dynamic_cast<QProxyItem*>(m_Ui->proxyList->item(modelIndex.row()));
+			if (!item) {
+				return;
+			}
+
+			CpProxyDialog dialog(this, item);
+			dialog.show();
+
+			QDialog::DialogCode r = static_cast<QDialog::DialogCode>(dialog.exec());
+			if (r == QDialog::DialogCode::Rejected) {
+				return;
+			}
+
+			QProxyItem* newItem = dialog.proxyItem();
+			if (!newItem) {
+				return;
+			}
+
+			m_Ui->proxyList->insertItem(modelIndex.row(), newItem);
+			m_Ui->proxyList->takeItem(modelIndex.row() + 1);
+		}
+		else if (selectedAction == deleteAction) {
 			m_Ui->proxyList->takeItem(modelIndex.row());
 
 			settingsChanged();
@@ -105,58 +148,18 @@ void CpWindow::settingsChanged() {
 }
 
 void CpWindow::addProxyItem() {
-	auto processImportLineEdit = [this]() -> void {
-		if (m_Ui->importLineEdit->text().isEmpty()) {
-			return;
-		}
+	CpProxyDialog dialog(this);
+	dialog.show();
 
-		QRegularExpression regex("(.*):(.*)@(.*):(.*)", QRegularExpression::PatternOption::NoPatternOption);
-		QRegularExpressionMatch match = regex.match(m_Ui->importLineEdit->text());
-		
-		QStringList captured = match.capturedTexts();
-		if (captured.size() != 5) {
-			return;
-		}
-
-		static QLineEdit* const fields[4] = {
-			m_Ui->usernameLineEdit,
-			m_Ui->passwordLineEdit,
-			m_Ui->ipLineEdit,
-			m_Ui->portLineEdit
-		};
-
-		for (qsizetype i = 0; i < captured.size() && i < 4; i++) {
-			fields[i]->setText(captured[i + 1]);
-		}
-	};
-
-	processImportLineEdit();
-
-	QProxyItem* item = new QProxyItem(
-		m_Ui->ipLineEdit->text(), 
-		m_Ui->portLineEdit->text(), 
-		m_Ui->usernameLineEdit->text(), 
-		m_Ui->passwordLineEdit->text(), 
-		m_Ui->tcpCheckbox->isChecked(), 
-		m_Ui->udpCheckbox->isChecked()
-	);
-
-	switch (item->error()) {
-	case TProxyErrorType::NoProtocols:
-		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("How are you gonna use proxy without TCP and UDP?"), QMessageBox::StandardButton::Ok);
-		delete item; item = nullptr;
+	QDialog::DialogCode r = static_cast<QDialog::DialogCode>(dialog.exec());
+	if (r == QDialog::DialogCode::Rejected) {
 		return;
-	case TProxyErrorType::InvalidIPv4:
-		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Enter a valid IPv4 address!"), QMessageBox::StandardButton::Ok);
-		delete item; item = nullptr;
-		return;
-	case TProxyErrorType::InvalidPort:
-		QMessageBox::critical(this, QObject::tr("Error"), QObject::tr("Enter a valid port!"), QMessageBox::StandardButton::Ok);
-		delete item; item = nullptr;
-		return;
-	default:
-		break;
 	}
 
-	m_Ui->proxyList->addItem(item);
+	QProxyItem* newItem = dialog.proxyItem();
+	if (!newItem) {
+		return;
+	}
+
+	m_Ui->proxyList->addItem(newItem);
 }
