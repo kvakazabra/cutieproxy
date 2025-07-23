@@ -32,6 +32,8 @@ namespace iphelper
 
     class filter_interface {
     public:
+        virtual ~filter_interface() = default;
+
         virtual bool match(const std::shared_ptr<iphelper::network_process>& process) const = 0;
     };
 
