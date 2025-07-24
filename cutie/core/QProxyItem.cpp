@@ -91,11 +91,11 @@ void QProxyItem::addFilter(const std::shared_ptr<iphelper::filter_interface>& fi
 	m_Filters.emplace_back(filter);
 }
 
-void QProxyItem::copyFiltersFrom(QProxyItem* from) {
+void QProxyItem::copyFiltersFrom(const QProxyItem* from) {
 	this->m_Filters = from->m_Filters;
 }
 
-void QProxyItem::copyFiltersTo(QProxyItem* to) {
+void QProxyItem::copyFiltersTo(QProxyItem* to) const {
 	to->m_Filters = this->m_Filters;
 }
 

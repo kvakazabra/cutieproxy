@@ -62,6 +62,8 @@ void CpProxyDialog::init() {
 
 		m_Ui->tcpCheckbox->setChecked(m_Prototype->protocols() & TSupportedProtocols::tcp);
 		m_Ui->udpCheckbox->setChecked(m_Prototype->protocols() & TSupportedProtocols::udp);
+
+		m_Ui->addProxyButton->setText(QObject::tr("Apply Changes"));
 	}
 }
 

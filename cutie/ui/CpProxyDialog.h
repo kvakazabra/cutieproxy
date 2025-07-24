@@ -16,5 +16,5 @@ private:
 
 private:
 	Ui_Dialog* m_Ui{ };
-	QProxyItem* m_Prototype{ };
+	const QProxyItem* m_Prototype{ };
 };
