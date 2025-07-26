@@ -51,6 +51,10 @@ QProxyItem* CpProxyDialog::proxyItem() {
 		m_Prototype->copyFiltersTo(newItem);
 	}
 
+	if (!m_Prototype) {
+		newItem->addFilter(std::make_shared<AllFilter>());
+	}
+
 	return newItem;
 }
 

@@ -1,5 +1,6 @@
 #include "CpWindow.h"
 #include "CpProxyDialog.h"
+#include "CpFiltersDialog.h"
 #include "ui_CpWindow.h"
 
 #include "../core/QProxyItem.h"
@@ -80,7 +81,8 @@ void CpWindow::connectSignals() {
 		QPoint item = m_Ui->proxyList->mapToGlobal(p);
 
 		QMenu submenu{ };
-		auto editAction = submenu.addAction("Edit");
+		auto editProxyAction = submenu.addAction("Edit Proxy");
+		auto editFiltersAction = submenu.addAction("Edit Filters");
 		auto deleteAction = submenu.addAction("Delete");
 
 		QAction* selectedAction = submenu.exec(item);
@@ -90,7 +92,7 @@ void CpWindow::connectSignals() {
 
 		QModelIndex modelIndex = m_Ui->proxyList->indexAt(p);
 
-		if (selectedAction == editAction) {
+		if (selectedAction == editProxyAction) {
 			QProxyItem* item = dynamic_cast<QProxyItem*>(m_Ui->proxyList->item(modelIndex.row()));
 			if (!item) {
 				return;
@@ -111,6 +113,23 @@ void CpWindow::connectSignals() {
 
 			m_Ui->proxyList->insertItem(modelIndex.row(), newItem);
 			m_Ui->proxyList->takeItem(modelIndex.row() + 1);
+		}
+		else if (selectedAction == editFiltersAction) {
+			QProxyItem* item = dynamic_cast<QProxyItem*>(m_Ui->proxyList->item(modelIndex.row()));
+			if (!item) {
+				return;
+			}
+
+			CpFiltersDialog dialog(this, item);
+			dialog.show();
+
+			QDialog::DialogCode r = static_cast<QDialog::DialogCode>(dialog.exec());
+			if (r == QDialog::DialogCode::Rejected) {
+				return;
+			}
+
+			item->clearFilters();
+			item->addFilter(dialog.filter());
 		}
 		else if (selectedAction == deleteAction) {
 			m_Ui->proxyList->takeItem(modelIndex.row());

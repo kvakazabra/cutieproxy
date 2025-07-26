@@ -14,6 +14,7 @@ set(SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/main.cpp
 	${CMAKE_CURRENT_LIST_DIR}/ui/CpWindow.cpp
 	${CMAKE_CURRENT_LIST_DIR}/ui/CpProxyDialog.cpp
+	${CMAKE_CURRENT_LIST_DIR}/ui/CpFiltersDialog.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/Socksifier.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/Filter.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/QProxyItem.cpp
@@ -22,6 +23,7 @@ set(SOURCES
 set(UI 
 	${CMAKE_CURRENT_LIST_DIR}/ui/CpWindow.ui
 	${CMAKE_CURRENT_LIST_DIR}/ui/CpProxyDialog.ui
+	${CMAKE_CURRENT_LIST_DIR}/ui/CpFiltersDialog.ui
 )
 
 add_executable(cutie ${SOURCES} ${UI})
