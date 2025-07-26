@@ -10,7 +10,6 @@
 
 #include "includes.h"
 
-
 class NoneFilter : public iphelper::filter_interface {
 public:
     NoneFilter() = default;
@@ -69,6 +68,7 @@ private:
 };
 
 class ProcessIdFilter : public iphelper::filter_interface {
+public:
     using TProcessId = decltype(iphelper::network_process::id);
 public:
     ProcessIdFilter(std::set<TProcessId> filter);

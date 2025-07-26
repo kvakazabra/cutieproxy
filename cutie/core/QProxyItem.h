@@ -32,6 +32,7 @@ public:
 	TProxyErrorType error() const;
 
 	void addFilter(const std::shared_ptr<iphelper::filter_interface>& filter);
+	void clearFilters();
 	void copyFiltersFrom(const QProxyItem* from);
 	void copyFiltersTo(QProxyItem* to) const;
 	const std::vector<std::shared_ptr<iphelper::filter_interface>>& filters();
