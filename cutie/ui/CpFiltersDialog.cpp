@@ -5,6 +5,8 @@
 #include <QLineEdit>
 #include <QPushButton>
 
+#include <Windows.h>
+
 CpFiltersDialog::CpFiltersDialog(QWidget* parent, QProxyItem* proxy)
 	: m_Ui{ new Ui::FiltersDialog() }, m_Proxy{ proxy } {
 	m_Ui->setupUi(this);
@@ -30,42 +32,29 @@ std::shared_ptr<iphelper::filter_interface> CpFiltersDialog::filter() const {
 	}
 	case TFilterType::Name: {
 		std::wstring str = m_Ui->patternLineEdit->text().toStdWString();
+		bool isOk{ };
 		TNameFilterType nameFilterType =
 			static_cast<TNameFilterType>(
-				m_Ui->nameFilterTypeCombo->itemData(m_Ui->nameFilterTypeCombo->currentIndex(), Qt::UserRole).toInt()
+				m_Ui->nameFilterTypeCombo->itemData(m_Ui->nameFilterTypeCombo->currentIndex(), Qt::UserRole).toInt(&isOk)
 				);
+		if (!isOk) {
+			return { };
+		}
+
 		TStringMatchType stringMatchType =
 			static_cast<TStringMatchType>(
-				m_Ui->stringMatchTypeCombo->itemData(m_Ui->stringMatchTypeCombo->currentIndex(), Qt::UserRole).toInt()
+				m_Ui->stringMatchTypeCombo->itemData(m_Ui->stringMatchTypeCombo->currentIndex(), Qt::UserRole).toInt(&isOk)
 				);
+		if (!isOk) {
+			return { };
+		}
+
 		bool caseSensitive = m_Ui->caseSensitiveCheckBox->isChecked();
 
 		return std::make_shared<NameFilter>(nameFilterType, str, stringMatchType, caseSensitive);
 	}
 	case TFilterType::ProcessId: {
-		static_assert(sizeof(ProcessIdFilter::TProcessId) == 4, "rework this fn");
-		auto convertStringToIdSet = [](const QString& input) -> std::set<ProcessIdFilter::TProcessId> {
-			if (input.isEmpty()) {
-				return { };
-			}
-
-			std::set<ProcessIdFilter::TProcessId> result{ };
-			QStringList parts = input.split(';', Qt::SkipEmptyParts);
-
-			for (auto& part : parts) {
-				bool isOk{ };
-				int v = part.toUInt(&isOk);
-				if (!isOk) {
-					continue;
-				}
-
-				result.insert(v);
-			}
-
-			return result;
-			};
-
-		return std::make_shared<ProcessIdFilter>(convertStringToIdSet(m_Ui->idsLineEdit->text()));
+		return std::make_shared<ProcessIdFilter>(convertStringToIds(m_Ui->idsLineEdit->text()));
 	}
 	}
 
@@ -94,6 +83,28 @@ void CpFiltersDialog::init() {
 		);
 		filterTypeChanged();
 	}
+}
+
+std::set<ProcessIdFilter::TProcessId> CpFiltersDialog::convertStringToIds(const QString& input) {
+	if (input.isEmpty()) {
+		return { };
+	}
+
+	std::set<ProcessIdFilter::TProcessId> result{ };
+	QStringList parts = input.split(';', Qt::SkipEmptyParts);
+
+	for (auto& part : parts) {
+		bool isOk{ };
+		static_assert(sizeof(ProcessIdFilter::TProcessId) == 4, "rework this fn");
+		int v = part.toUInt(&isOk);
+		if (!isOk) {
+			continue;
+		}
+
+		result.insert(v);
+	}
+
+	return result;
 }
 
 CpFiltersDialog::TFilterType CpFiltersDialog::filterTypeByObject(const std::shared_ptr<iphelper::filter_interface>& filter) {
@@ -156,11 +167,68 @@ void CpFiltersDialog::filterTypeChanged() {
 	adjustSize();
 }
 
+void CpFiltersDialog::addProcessId(ProcessIdFilter::TProcessId id) {
+	setWindowTitle(m_OldWindowTitle);
+	setEnabled(true);
+
+	m_Ui->idsLineEdit->setText(QString("%1;%2").arg(id).arg(m_Ui->idsLineEdit->text()));
+}
+
+struct TMouseHookProcData {
+	HHOOK mouseHk{ };
+	std::set<DWORD> ignoreProcessIds{ };
+	CpFiltersDialog* dialog{ };
+};
+
+static std::unique_ptr<TMouseHookProcData> s_MouseHookProcData{ };
+
+LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode < 0) {
+		return CallNextHookEx(s_MouseHookProcData->mouseHk, nCode, wParam, lParam);
+	}
+
+	if (wParam != WM_LBUTTONDOWN) {
+		return CallNextHookEx(s_MouseHookProcData->mouseHk, nCode, wParam, lParam);
+	}
+
+	auto* mouseInfo = reinterpret_cast<MSLLHOOKSTRUCT*>(lParam);
+	POINT pt = { mouseInfo->pt.x, mouseInfo->pt.y };
+	HWND clickedWindow = WindowFromPoint(pt);
+	if (!clickedWindow) {
+		return CallNextHookEx(s_MouseHookProcData->mouseHk, nCode, wParam, lParam);
+	}
+
+	DWORD processId = { };
+	GetWindowThreadProcessId(clickedWindow, &processId);
+
+	if (!processId || s_MouseHookProcData->ignoreProcessIds.count(processId) != 0) {
+		return CallNextHookEx(s_MouseHookProcData->mouseHk, nCode, wParam, lParam);
+	}
+
+	UnhookWindowsHookEx(s_MouseHookProcData->mouseHk);
+	s_MouseHookProcData->mouseHk = nullptr;
+
+	emit s_MouseHookProcData->dialog->addProcessIdSignal(processId);
+
+	return CallNextHookEx(s_MouseHookProcData->mouseHk, nCode, wParam, lParam);
+}
+
 void CpFiltersDialog::connectSignals() {
 	QObject::connect(m_Ui->closeButton, &QPushButton::clicked, this, &QDialog::reject);
 	QObject::connect(m_Ui->applyChangesButton, &QPushButton::clicked, this, &QDialog::accept);
 
-	QObject::connect(m_Ui->filterTypeCombo, &QComboBox::currentIndexChanged, [this]() -> void {
-		filterTypeChanged();
+	QObject::connect(m_Ui->filterTypeCombo, &QComboBox::currentIndexChanged, this, &CpFiltersDialog::filterTypeChanged);
+	QObject::connect(this, &CpFiltersDialog::addProcessIdSignal, this, &CpFiltersDialog::addProcessId);
+
+	QObject::connect(m_Ui->selectByWindowButton, &QPushButton::clicked, [this]() -> void {
+		m_OldWindowTitle = windowTitle();
+		setEnabled(false);
+		setWindowTitle(QObject::tr("Waiting for a window..."));
+
+		s_MouseHookProcData = std::make_unique<TMouseHookProcData>();
+		s_MouseHookProcData->ignoreProcessIds = convertStringToIds(m_Ui->idsLineEdit->text());
+		s_MouseHookProcData->ignoreProcessIds.insert(GetCurrentProcessId());
+		s_MouseHookProcData->dialog = this;
+		s_MouseHookProcData->mouseHk = SetWindowsHookExA(WH_MOUSE_LL, MouseHookProc, 0, 0);
 		});
 }
