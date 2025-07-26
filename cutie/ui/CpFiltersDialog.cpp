@@ -62,6 +62,8 @@ std::shared_ptr<iphelper::filter_interface> CpFiltersDialog::filter() const {
 }
 
 void CpFiltersDialog::init() {
+	setWindowTitle(QObject::tr("Edit Filters"));
+
 	m_Ui->filterTypeCombo->addItem(QObject::tr("None"), QVariant(static_cast<int>(TFilterType::None)));
 	m_Ui->filterTypeCombo->addItem(QObject::tr("All"), QVariant(static_cast<int>(TFilterType::All)));
 	m_Ui->filterTypeCombo->addItem(QObject::tr("Name"), QVariant(static_cast<int>(TFilterType::Name)));

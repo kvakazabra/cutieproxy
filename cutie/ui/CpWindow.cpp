@@ -40,6 +40,8 @@ void CpWindow::init() {
 		"   color: black;"
 		"}"
 	);
+
+	setWindowTitle(QObject::tr("$$ cutieProxy $$"));
 }
 
 void CpWindow::connectSignals() {

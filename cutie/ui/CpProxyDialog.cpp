@@ -59,7 +59,11 @@ QProxyItem* CpProxyDialog::proxyItem() {
 }
 
 void CpProxyDialog::init() {
+	setWindowTitle(QObject::tr("Add Proxy"));
+
 	if (m_Prototype) {
+		setWindowTitle(QObject::tr("Edit Proxy"));
+
 		m_Ui->ipLineEdit->setText(m_Prototype->ipv4());
 		m_Ui->portLineEdit->setText(m_Prototype->port());
 		m_Ui->usernameLineEdit->setText(m_Prototype->username());
