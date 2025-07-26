@@ -1,5 +1,6 @@
 #include "CpWindow.h"
 #include "CpProxyDialog.h"
+#include "ui_CpWindow.h"
 
 #include "../core/QProxyItem.h"
 
@@ -8,7 +9,7 @@
 #include <QMessageBox>
 
 CpWindow::CpWindow() 
-	: m_Ui{ new Ui_MainWindow() } {
+	: m_Ui{ new Ui::MainWindow() } {
 	m_Ui->setupUi(this);
 
 	init();

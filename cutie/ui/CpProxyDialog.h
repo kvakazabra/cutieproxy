@@ -2,7 +2,10 @@
 #include <QDialog>
 
 #include "../core/QProxyItem.h"
-#include "ui_CpProxyDialog.h"
+
+namespace Ui {
+	class ProxyDialog;
+}
 
 class CpProxyDialog : public QDialog {
 public:
@@ -15,6 +18,6 @@ private:
 	void connectSignals();
 
 private:
-	Ui_Dialog* m_Ui{ };
+	Ui::ProxyDialog* m_Ui{ };
 	const QProxyItem* m_Prototype{ };
 };

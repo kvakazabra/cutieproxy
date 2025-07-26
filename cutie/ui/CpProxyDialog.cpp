@@ -1,9 +1,10 @@
 #include "CpProxyDialog.h"
+#include "ui_CpProxyDialog.h"
 
 #include <QMessageBox>
 
 CpProxyDialog::CpProxyDialog(QWidget* parent, QProxyItem* edit)
-	: m_Ui{ new Ui_Dialog() }, m_Prototype{ edit } {
+	: m_Ui{ new Ui::ProxyDialog() }, m_Prototype{ edit } {
 	m_Ui->setupUi(this);
 
 	init();

@@ -4,7 +4,10 @@
 #include <QMainWindow>
 
 #include "../core/Socksifier.h"
-#include "ui_CpWindow.h"
+
+namespace Ui {
+	class MainWindow;
+}
 
 class CpWindow : public QMainWindow {
 	Q_OBJECT
@@ -22,7 +25,7 @@ private Q_SLOTS:
 	void addProxyItem();
 private:
 	std::unique_ptr<Socksifier> m_Socksifier{ };
-	Ui_MainWindow* m_Ui{ };
+	Ui::MainWindow* m_Ui{ };
 
 	bool m_Started{ };
 };
